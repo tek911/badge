@@ -6,7 +6,7 @@ Benchmarking Application Defense and Grading Ecosystems
 
 
 
-- [ ] **Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')**  
+- [x] **Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')**  
   - CWE-79 | CVEs in KEV: 3 | Rank Last Year: 2 | Trend: ↑ 1
 
 - [ ] **Out-of-bounds Write**  
