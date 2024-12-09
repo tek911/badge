@@ -1,4 +1,4 @@
-# badge
+# B.A.D.G.E
 Benchmarking Application Defense and Grading Ecosystems
 
 
