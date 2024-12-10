@@ -4,265 +4,144 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
-using System.Net.Http;
-using System.Threading.Tasks;
 
-namespace VulnerableApp
+namespace RealVulnerabilitiesApp
 {
     class Program
     {
         static void Main(string[] args)
         {
-            // Example usage of each vulnerability method
+            Console.WriteLine("Enter your input:");
+
+            // Example of user input to simulate untrusted sources
+            string userInput = Console.ReadLine();
 
             // CWE-79: Cross-Site Scripting (XSS)
-            Console.WriteLine(DisplayUserInput("<script>alert('XSS')</script>"));
-
-            // CWE-787: Out-of-bounds Write
-            OutOfBoundsWrite(11, 100);
+            CrossSiteScripting(userInput);
 
             // CWE-89: SQL Injection
-            SqlInjectionVulnerable("1 OR 1=1");
+            SqlInjection(userInput);
 
             // CWE-352: Cross-Site Request Forgery (CSRF) Simulation
-            SimulateCSRF("action");
+            SimulateCSRF(userInput, "new@example.com");
 
             // CWE-22: Path Traversal
-            PathTraversalVulnerable("../../etc/passwd");
-
-            // CWE-125: Out-of-bounds Read
-            Console.WriteLine(OutOfBoundsRead(11));
+            PathTraversal(userInput);
 
             // CWE-78: Command Injection
-            CommandInjectionVulnerable("&& del C:\\importantfile.txt");
-
-            // CWE-416: Use After Free (conceptual)
-            UseAfterFree();
-
-            // CWE-862: Missing Authorization
-            MissingAuthorizationVulnerable();
-
-            // CWE-434: Unrestricted File Upload
-            UnrestrictedFileUpload("dangerousfile.exe");
-
-            // CWE-94: Code Injection
-            CodeInjectionVulnerable("Console.WriteLine(\"Injected code executed\");");
-
-            // CWE-20: Improper Input Validation
-            ImproperInputValidation(18);
-
-            // CWE-77: Command Injection
-            CommandInjection(" && shutdown -s");
-
-            // CWE-287: Improper Authentication
-            ImproperAuthentication("admin", "password123");
-
-            // CWE-269: Improper Privilege Management
-            ImproperPrivilegeManagement();
+            CommandInjection(userInput);
 
             // CWE-502: Deserialization of Untrusted Data
-            DeserializationVulnerable(new byte[0]);
+            DeserializeUntrustedData("serializedData.bin");
+
+            // CWE-94: Code Injection
+            CodeInjection(userInput);
+
+            // CWE-190: Integer Overflow
+            Console.WriteLine(IntegerOverflow(int.MaxValue));
 
             // CWE-200: Information Exposure
             InformationExposure();
 
-            // CWE-863: Incorrect Authorization
-            IncorrectAuthorization(1);
-
-            // CWE-918: SSRF Vulnerability
-            SSRFVulnerable("http://example.com");
-
-            // CWE-119: Buffer Overflow
-            BufferOverflowVulnerable("This is a long input string");
-
-            // CWE-476: NULL Pointer Dereference
-            NullPointerDereference();
-
-            // CWE-798: Hardcoded Credentials
-            Console.WriteLine(HardcodedCredentials());
-
-            // CWE-190: Integer Overflow
-            Console.WriteLine(IntegerOverflowVulnerable(1000000));
-
-            // CWE-400: Uncontrolled Resource Consumption
-            // Uncomment to simulate uncontrolled resource consumption
-            // UncontrolledResourceConsumption();
-
-            // CWE-306: Missing Authentication for Critical Function
-            MissingAuthentication();
+            // CWE-119: Buffer Overflow Simulation
+            BufferOverflowSimulation(userInput);
         }
 
         // CWE-79: Cross-Site Scripting (XSS)
-        static string DisplayUserInput(string userInput)
+        static void CrossSiteScripting(string userInput)
         {
-            return userInput;
-        }
-
-        // CWE-787: Out-of-bounds Write
-        static void OutOfBoundsWrite(int index, int value)
-        {
-            int[] array = new int[10];
-            array[index] = value; // Vulnerable to out-of-bounds write
+            // Vulnerable to XSS: user input is injected into HTML output without sanitization
+            string unsafeHtml = $"<div>{userInput}</div>";
+            Console.WriteLine("Rendered HTML: " + unsafeHtml);
         }
 
         // CWE-89: SQL Injection
-        static void SqlInjectionVulnerable(string userId)
+        static void SqlInjection(string userInput)
         {
-            string query = "SELECT * FROM Users WHERE UserId = " + userId;
-            Console.WriteLine("Executing query: " + query);
+            // Vulnerable to SQL Injection: Untrusted input directly concatenated in SQL query
+            string connectionString = "your_connection_string_here";
+            string query = $"SELECT * FROM Users WHERE Id = {userInput}"; // User input inserted directly
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                SqlCommand command = new SqlCommand(query, conn);
+                conn.Open();
+                SqlDataReader reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    Console.WriteLine(reader["Name"]);
+                }
+            }
         }
 
-        // CWE-352: Cross-Site Request Forgery (CSRF) Simulation
-        static void SimulateCSRF(string action)
+        // CWE-352: Cross-Site Request Forgery (CSRF)
+        static void SimulateCSRF(string action, string value)
         {
-            Console.WriteLine($"Performing action: {action} without CSRF token.");
+            // Simulates a state-changing request without CSRF token
+            Console.WriteLine($"Performing {action} with value {value}");
         }
 
         // CWE-22: Path Traversal
-        static void PathTraversalVulnerable(string filePath)
+        static void PathTraversal(string filePath)
         {
-            string fullPath = Path.Combine("C:\\SensitiveFiles\\", filePath);
-            Console.WriteLine(File.ReadAllText(fullPath));
-        }
-
-        // CWE-125: Out-of-bounds Read
-        static int OutOfBoundsRead(int index)
-        {
-            int[] array = new int[10];
-            return array[index]; // Vulnerable to out-of-bounds read
+            // Vulnerable to Path Traversal: User input allows navigating out of intended directories
+            string basePath = "C:\\SensitiveData\\";
+            string fullPath = Path.Combine(basePath, filePath); // User input inserted directly
+            Console.WriteLine("File Content: " + File.ReadAllText(fullPath));
         }
 
         // CWE-78: Command Injection
-        static void CommandInjectionVulnerable(string command)
+        static void CommandInjection(string userInput)
         {
-            Process.Start("cmd.exe", "/C " + command);
-        }
-
-        // CWE-416: Use After Free (Conceptual Example)
-        static void UseAfterFree()
-        {
-            object obj = new object();
-            obj = null;
-            Console.WriteLine(obj); // Use-after-free simulation
-        }
-
-        // CWE-862: Missing Authorization
-        static void MissingAuthorizationVulnerable()
-        {
-            Console.WriteLine("Access granted without authorization.");
-        }
-
-        // CWE-434: Unrestricted File Upload
-        static void UnrestrictedFileUpload(string fileName)
-        {
-            Console.WriteLine($"Uploaded {fileName} without validation.");
-        }
-
-        // CWE-94: Code Injection
-        static void CodeInjectionVulnerable(string code)
-        {
-            // This is illustrative; do not use in real applications
-            Console.WriteLine($"Executing: {code}");
-        }
-
-        // CWE-20: Improper Input Validation
-        static void ImproperInputValidation(int age)
-        {
-            if (age == 18)
-            {
-                Console.WriteLine("User is 18.");
-            }
-        }
-
-        // CWE-77: Command Injection
-        static void CommandInjection(string command)
-        {
-            Process.Start("cmd.exe", "/C " + command);
-        }
-
-        // CWE-287: Improper Authentication
-        static void ImproperAuthentication(string username, string password)
-        {
-            if (username == "admin")
-            {
-                Console.WriteLine("Authenticated as admin.");
-            }
-        }
-
-        // CWE-269: Improper Privilege Management
-        static void ImproperPrivilegeManagement()
-        {
-            Console.WriteLine("Privilege escalated.");
+            // Vulnerable to Command Injection: User input is passed directly to the shell
+            Process.Start("cmd.exe", "/C dir " + userInput);
         }
 
         // CWE-502: Deserialization of Untrusted Data
-        static void DeserializationVulnerable(byte[] data)
+        static void DeserializeUntrustedData(string filePath)
         {
-            var formatter = new BinaryFormatter();
-            using (var ms = new MemoryStream(data))
+            // Vulnerable to Deserialization of Untrusted Data: File data is not validated
+            if (File.Exists(filePath))
             {
-                var obj = formatter.Deserialize(ms);
-                Console.WriteLine(obj);
+                byte[] serializedData = File.ReadAllBytes(filePath);
+                BinaryFormatter formatter = new BinaryFormatter();
+                using (MemoryStream ms = new MemoryStream(serializedData))
+                {
+                    object obj = formatter.Deserialize(ms);
+                    Console.WriteLine("Deserialized Object: " + obj);
+                }
             }
+        }
+
+        // CWE-94: Code Injection
+        static void CodeInjection(string userInput)
+        {
+            // Vulnerable to Code Injection: Simulates code execution from untrusted input
+            Console.WriteLine($"Simulated code execution: {userInput}");
+            // Imagine this is dynamically executed or compiled in real-world scenarios
+        }
+
+        // CWE-190: Integer Overflow
+        static int IntegerOverflow(int value)
+        {
+            // Vulnerable to Integer Overflow: Adding to max value
+            return checked(value + 1); // Overflow happens if value is int.MaxValue
         }
 
         // CWE-200: Information Exposure
         static void InformationExposure()
         {
-            Console.WriteLine(File.ReadAllText("C:\\SensitiveFiles\\passwords.txt"));
+            // Vulnerable to Information Exposure: Sensitive file content displayed
+            string sensitiveInfo = File.ReadAllText("C:\\Sensitive\\passwords.txt");
+            Console.WriteLine(sensitiveInfo);
         }
 
-        // CWE-863: Incorrect Authorization
-        static void IncorrectAuthorization(int userId)
+        // CWE-119: Buffer Overflow Simulation
+        static void BufferOverflowSimulation(string userInput)
         {
-            Console.WriteLine($"User {userId} data retrieved.");
-        }
-
-        // CWE-918: SSRF Vulnerability
-        static void SSRFVulnerable(string url)
-        {
-            HttpClient client = new HttpClient();
-            var result = client.GetStringAsync(url).Result;
-            Console.WriteLine(result);
-        }
-
-        // CWE-119: Buffer Overflow
-        static void BufferOverflowVulnerable(string input)
-        {
+            // Vulnerable to Buffer Overflow: User input exceeds buffer length
             byte[] buffer = new byte[10];
-            byte[] data = Encoding.UTF8.GetBytes(input);
-            Array.Copy(data, buffer, data.Length);
-        }
-
-        // CWE-476: NULL Pointer Dereference
-        static void NullPointerDereference()
-        {
-            object obj = null;
-            Console.WriteLine(obj.ToString());
-        }
-
-        // CWE-798: Hardcoded Credentials
-        static string HardcodedCredentials()
-        {
-            return "Username: admin, Password: hardcoded123";
-        }
-
-        // CWE-190: Integer Overflow
-        static int IntegerOverflowVulnerable(int value)
-        {
-            return value * 100000000;
-        }
-
-        // CWE-400: Uncontrolled Resource Consumption
-        static void UncontrolledResourceConsumption()
-        {
-            while (true) { } // Simulating infinite loop
-        }
-
-        // CWE-306: Missing Authentication for Critical Function
-        static void MissingAuthentication()
-        {
-            Console.WriteLine("Critical function executed without authentication.");
+            byte[] inputBytes = Encoding.UTF8.GetBytes(userInput);
+            Array.Copy(inputBytes, buffer, inputBytes.Length);
         }
     }
 }
