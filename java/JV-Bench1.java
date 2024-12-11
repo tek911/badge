@@ -53,14 +53,13 @@ public class VulnerableApp extends HttpServlet {
         StringBuilder result = new StringBuilder();
         String line;
         while ((line = reader.readLine()) != null) {
-            result.append(line).append("
-");
+            result.append(line).append("\\n");
         }
         // Write raw command output without interpreting it as HTML, preventing XSS
         response.setContentType("text/plain");
         response.getWriter().write(result.toString());
     }
-    }
+
 
     // CWE-200: Exposure of Sensitive Information
     protected void getConfig(HttpServletRequest request, HttpServletResponse response) throws IOException {
