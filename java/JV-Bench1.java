@@ -49,7 +49,17 @@ public class VulnerableApp extends HttpServlet {
         String command = request.getParameter("command");
         // Directly using user input, allowing OS command injection
         Process process = Runtime.getRuntime().exec(command);
-        response.getWriter().write(new BufferedReader(new InputStreamReader(process.getInputStream())).readLine());
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        StringBuilder result = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            result.append(line).append("
+");
+        }
+        // Write raw command output without interpreting it as HTML, preventing XSS
+        response.setContentType("text/plain");
+        response.getWriter().write(result.toString());
+    }
     }
 
     // CWE-200: Exposure of Sensitive Information
