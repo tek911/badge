@@ -1,0 +1,232 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <fstream>
+#include <sstream>
+#include <cstring>
+#include <mysql/mysql.h>
+#include <curl/curl.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <cstdlib>
+#include <memory>
+#include <map>
+#include <rapidjson/document.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+
+// CWE-798: Hard-coded Credentials
+const char* DB_HOST = "localhost";
+const char* DB_USER = "admin";
+const char* DB_PASS = "admin123";
+const char* DB_NAME = "test_db";
+
+class VulnerableApp {
+private:
+    MYSQL* conn;
+    std::vector<uint8_t*> allocated_buffers;
+
+public:
+    VulnerableApp() {
+        conn = mysql_init(NULL);
+        if (conn) {
+            mysql_real_connect(conn, DB_HOST, DB_USER, DB_PASS, DB_NAME, 0, NULL, 0);
+        }
+    }
+
+    ~VulnerableApp() {
+        if (conn) mysql_close(conn);
+        // Memory leak: not freeing allocated_buffers
+    }
+
+    // CWE-89: SQL Injection
+    void executeQuery(const std::string& username) {
+        if (!conn) return;
+
+        // Dangerous: Direct string concatenation in SQL
+        std::string query = "SELECT * FROM users WHERE username = '" + username + "'";
+        mysql_query(conn, query.c_str());
+    }
+
+    // CWE-78: OS Command Injection
+    void executeCommand(const std::string& cmd) {
+        // Dangerous: Direct command execution
+        std::string command = "ls " + cmd;
+        system(command.c_str());
+    }
+
+    // CWE-120: Buffer Copy without Checking Size of Input ('Classic Buffer Overflow')
+    void copyData(const char* input) {
+        char buffer[50];
+        // Dangerous: No bounds checking
+        strcpy(buffer, input);
+        std::cout << "Buffer content: " << buffer << std::endl;
+    }
+
+    // CWE-787: Out-of-bounds Write
+    void writeData(int* arr, int size, int index, int value) {
+        // Dangerous: No bounds checking
+        arr[index] = value;
+    }
+
+    // CWE-125: Out-of-bounds Read
+    int readData(int* arr, int size, int index) {
+        // Dangerous: No bounds checking
+        return arr[index];
+    }
+
+    // CWE-416: Use After Free
+    void useAfterFree() {
+        int* ptr = new int(42);
+        delete ptr;
+        // Dangerous: Using freed memory
+        *ptr = 100;
+        std::cout << *ptr << std::endl;
+    }
+
+    // CWE-476: NULL Pointer Dereference
+    void nullPointerDereference() {
+        int* ptr = nullptr;
+        // Dangerous: Dereferencing null pointer
+        *ptr = 42;
+    }
+
+    // CWE-190: Integer Overflow
+    int multiply(int a, int b) {
+        // Dangerous: No overflow checking
+        return a * b;
+    }
+
+    // CWE-22: Path Traversal
+    std::string readFile(const std::string& filename) {
+        // Dangerous: No path validation
+        std::ifstream file(filename);
+        std::stringstream buffer;
+        buffer << file.rdbuf();
+        return buffer.str();
+    }
+
+    // CWE-434: Unrestricted File Upload
+    void saveFile(const std::string& filename, const std::string& content) {
+        // Dangerous: No file type validation
+        std::ofstream file(filename);
+        file << content;
+    }
+
+    // CWE-502: Deserialization of Untrusted Data
+    void deserialize(const std::string& data) {
+        // Dangerous: No validation of input data
+        rapidjson::Document d;
+        d.Parse(data.c_str());
+    }
+
+    // CWE-119: Improper Restriction of Operations within the Bounds of a Memory Buffer
+    void memoryBufferOperation() {
+        char* buffer = new char[10];
+        char* source = new char[20];
+        memset(source, 'A', 20);
+        // Dangerous: Buffer overflow
+        memcpy(buffer, source, 20);
+        
+        delete[] buffer;
+        delete[] source;
+    }
+
+    // CWE-400: Uncontrolled Resource Consumption
+    void resourceExhaustion() {
+        std::vector<uint8_t*> memory_blocks;
+        // Dangerous: Infinite memory allocation
+        while (true) {
+            uint8_t* block = new uint8_t[1024 * 1024];
+            memory_blocks.push_back(block);
+        }
+    }
+
+    // CWE-94: Code Injection
+    void evaluateCode(const std::string& code) {
+        // Dangerous: Executing arbitrary code
+        std::string command = "python -c \"" + code + "\"";
+        system(command.c_str());
+    }
+
+    // CWE-306: Missing Authentication
+    bool accessAdminPanel() {
+        // Dangerous: No authentication check
+        return true;
+    }
+
+    // CWE-269: Improper Privilege Management
+    void elevatePrivileges() {
+        // Dangerous: No privilege validation
+        setuid(0);
+    }
+
+    // CWE-200: Information Exposure
+    void displayDebugInfo() {
+        // Dangerous: Exposing sensitive information
+        std::cout << "DB Host: " << DB_HOST << std::endl;
+        std::cout << "DB User: " << DB_USER << std::endl;
+        std::cout << "DB Pass: " << DB_PASS << std::endl;
+    }
+
+    // CWE-918: Server-Side Request Forgery (SSRF)
+    void fetchUrl(const std::string& url) {
+        CURL* curl = curl_easy_init();
+        if (curl) {
+            // Dangerous: No URL validation
+            curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+            curl_easy_perform(curl);
+            curl_easy_cleanup(curl);
+        }
+    }
+};
+
+// Example of integer overflow in heap allocation
+class HeapOverflow {
+public:
+    void* allocateBuffer(size_t length) {
+        // Dangerous: Integer overflow in allocation size calculation
+        size_t size = length * sizeof(char) + 8;
+        return malloc(size);
+    }
+};
+
+// Example of format string vulnerability
+class FormatStringVulnerability {
+public:
+    void formatString(const char* userInput) {
+        // Dangerous: Format string vulnerability
+        printf(userInput);
+    }
+};
+
+// Main function demonstrating usage
+int main() {
+    VulnerableApp app;
+
+    // Demonstrating SQL Injection
+    app.executeQuery("admin' OR '1'='1");
+
+    // Demonstrating Buffer Overflow
+    app.copyData("This is a very long string that will overflow the buffer");
+
+    // Demonstrating Command Injection
+    app.executeCommand("; rm -rf /");
+
+    // Demonstrating Use After Free
+    app.useAfterFree();
+
+    // Demonstrating Integer Overflow
+    app.multiply(INT_MAX, 2);
+
+    // Demonstrating Path Traversal
+    app.readFile("../../../etc/passwd");
+
+    // Demonstrating Memory Buffer Operation
+    app.memoryBufferOperation();
+
+    // Demonstrating Information Exposure
+    app.displayDebugInfo();
+
+    return 0;
+}
