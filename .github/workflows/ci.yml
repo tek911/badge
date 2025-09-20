@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: [lint, typecheck, test]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Install dependencies
+        run: pnpm install
+      - name: Lint
+        run: pnpm --filter ${{ matrix.project }} lint
+      - name: Typecheck
+        run: pnpm --filter ${{ matrix.project }} typecheck
+      - name: Test
+        run: pnpm --filter ${{ matrix.project }} test
