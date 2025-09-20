@@ -1,0 +1,10 @@
+[
+  {
+    "id": 101,
+    "name": "inventory-service",
+    "path_with_namespace": "acme/inventory-service",
+    "default_branch": "main",
+    "web_url": "https://gitlab.com/acme/inventory-service",
+    "visibility": "private"
+  }
+]

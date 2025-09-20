@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "service-inventory.fullname" . }}-web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: {{ include "service-inventory.fullname" . }}-web
+  template:
+    metadata:
+      labels:
+        app: {{ include "service-inventory.fullname" . }}-web
+    spec:
+      containers:
+        - name: web
+          image: "{{ .Values.web.repository }}:{{ .Values.web.tag }}"
+          imagePullPolicy: {{ .Values.web.pullPolicy }}
+          ports:
+            - containerPort: 4173
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 4173
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 4173
+            periodSeconds: 10

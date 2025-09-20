@@ -1,0 +1,254 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model BusinessApplication {
+  id               String              @id @default(cuid())
+  name             String
+  description      String?
+  criticality      String
+  lifecycleStatus  String
+  tags             Json
+  primaryCloud     String
+  metadata         Json?              
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  deletedAt        DateTime?
+  components       Component[]
+  owners           ApplicationOwner[]
+  tagsRelation     Tag[]
+}
+
+model Owner {
+  id        String             @id @default(cuid())
+  name      String
+  email     String             @unique
+  type      OwnerType
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  deletedAt DateTime?
+  applications ApplicationOwner[]
+  auditLogs  AuditLog[]        @relation("ActorAudit")
+}
+
+enum OwnerType {
+  TECHNICAL
+  BUSINESS
+}
+
+model ApplicationOwner {
+  id                    String              @id @default(cuid())
+  businessApplicationId String
+  ownerId               String
+  role                  String
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  application BusinessApplication @relation(fields: [businessApplicationId], references: [id])
+  owner       Owner               @relation(fields: [ownerId], references: [id])
+
+  @@unique([businessApplicationId, ownerId, role])
+}
+
+enum ComponentType {
+  FRONTEND
+  BACKEND
+  DATA
+}
+
+model Component {
+  id                    String               @id @default(cuid())
+  businessApplicationId String
+  type                  ComponentType
+  name                  String
+  description           String?
+  metadata              Json?               
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  deletedAt             DateTime?
+  application           BusinessApplication  @relation(fields: [businessApplicationId], references: [id])
+  repositoryLinks       RepoComponentLink[]
+  dependencies          LibraryDependency[]
+  workloads             ComponentToWorkload[]
+}
+
+enum RepositoryHost {
+  github
+  gitlab
+  bitbucket
+  azuredevops
+}
+
+model Repository {
+  id              String             @id @default(cuid())
+  host            RepositoryHost
+  org             String
+  name            String
+  defaultBranch   String
+  url             String             @unique
+  visibility      String
+  primaryLanguage String
+  topics          Json
+  tags            Json
+  license         String?
+  metadata        Json?             
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  deletedAt       DateTime?
+  components      RepoComponentLink[]
+}
+
+model RepoComponentLink {
+  id            String     @id @default(cuid())
+  componentId   String
+  repositoryId  String
+  path          String
+  buildSystem   String?
+  packageManager String?
+  confidence    Float      @default(0.5)
+  provenance    Json      
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  component  Component  @relation(fields: [componentId], references: [id])
+  repository Repository @relation(fields: [repositoryId], references: [id])
+
+  @@index([componentId])
+  @@index([repositoryId])
+  @@unique([componentId, repositoryId, path])
+}
+
+model LibraryDependency {
+  id          String    @id @default(cuid())
+  componentId String
+  name        String
+  version     String
+  license     String?
+  ecosystem   String
+  source      String
+  metadata    Json?    
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  component Component @relation(fields: [componentId], references: [id])
+
+  @@index([componentId])
+}
+
+model ContainerImage {
+  id                    String            @id @default(cuid())
+  registry              String
+  repository            String
+  tag                   String
+  digest                String            @unique
+  baseImage             String?
+  vulnerabilitiesSummary Json?
+  metadata              Json?            
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  workloads             ImageToWorkload[]
+}
+
+enum WorkloadType {
+  CLOUD_SERVICE
+  CONTAINER
+  VM
+}
+
+enum WorkloadPlatform {
+  AWS
+  Azure
+  GCP
+  K8S
+  VMWARE
+  OTHER
+}
+
+model Workload {
+  id           String             @id @default(cuid())
+  type         WorkloadType
+  platform     WorkloadPlatform
+  name         String
+  region       String?
+  accountId    String?
+  cluster      String?
+  namespace    String?
+  serviceType  String?
+  runtimeTags  Json
+  url          String?
+  status       String
+  metadata     Json?             
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  deletedAt    DateTime?
+  images       ImageToWorkload[]
+  components   ComponentToWorkload[]
+}
+
+model ImageToWorkload {
+  id              String   @id @default(cuid())
+  containerImageId String
+  workloadId       String
+  confidence       Float    @default(0.5)
+  provenance       Json    
+
+  containerImage ContainerImage @relation(fields: [containerImageId], references: [id])
+  workload       Workload       @relation(fields: [workloadId], references: [id])
+
+  @@unique([containerImageId, workloadId])
+}
+
+model ComponentToWorkload {
+  id          String   @id @default(cuid())
+  componentId String
+  workloadId  String
+  confidence  Float    @default(0.5)
+  provenance  Json    
+
+  component Component @relation(fields: [componentId], references: [id])
+  workload  Workload  @relation(fields: [workloadId], references: [id])
+
+  @@unique([componentId, workloadId])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  businessApplicationId String?
+  key       String
+  value     String
+  source    TagSource
+  metadata  Json?   
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  application BusinessApplication? @relation(fields: [businessApplicationId], references: [id])
+
+  @@index([key])
+}
+
+enum TagSource {
+  cloud
+  scm
+  manual
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  action     String
+  entityType String
+  entityId   String
+  timestamp  DateTime @default(now())
+  details    Json    
+  hash       String
+
+  actor Owner @relation("ActorAudit", fields: [actorId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([timestamp])
+}

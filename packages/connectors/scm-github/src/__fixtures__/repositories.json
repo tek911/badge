@@ -1,0 +1,13 @@
+[
+  {
+    "id": "repo-gh-1",
+    "name": "payments-platform",
+    "org": "acme",
+    "default_branch": "main",
+    "html_url": "https://github.com/acme/payments-platform",
+    "visibility": "private",
+    "language": "TypeScript",
+    "topics": ["payments", "node"],
+    "license": { "spdx_id": "Apache-2.0" }
+  }
+]
