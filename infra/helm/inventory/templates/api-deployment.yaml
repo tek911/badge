@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "service-inventory.fullname" . }}-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: {{ include "service-inventory.fullname" . }}-api
+  template:
+    metadata:
+      labels:
+        app: {{ include "service-inventory.fullname" . }}-api
+    spec:
+      containers:
+        - name: api
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: DATABASE_URL
+              value: {{ .Values.env.DATABASE_URL | quote }}
+            - name: REDIS_URL
+              value: {{ .Values.env.REDIS_URL | quote }}
+            - name: HMAC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "service-inventory.fullname" . }}-secrets
+                  key: hmacSecret
+          ports:
+            - containerPort: 3000
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 3000
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            periodSeconds: 10

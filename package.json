@@ -1,0 +1,33 @@
+{
+  "name": "service-inventory-platform",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@8.15.1",
+  "scripts": {
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "format": "prettier --write .",
+    "typecheck": "pnpm -r typecheck",
+    "dev": "pnpm -r --parallel dev",
+    "prisma:migrate": "pnpm --filter api prisma:migrate",
+    "prisma:generate": "pnpm --filter api prisma:generate",
+    "seed": "pnpm --filter api seed"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "18.4.3",
+    "@commitlint/config-conventional": "18.4.3",
+    "commander": "11.1.0",
+    "husky": "9.0.11",
+    "lint-staged": "15.2.2",
+    "prettier": "3.1.1"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,md,yml,yaml}": [
+      "prettier --write"
+    ],
+    "*.{ts,tsx}": [
+      "eslint --fix"
+    ]
+  }
+}

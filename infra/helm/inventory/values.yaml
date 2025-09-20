@@ -1,0 +1,16 @@
+image:
+  repository: ghcr.io/example/service-inventory-api
+  tag: latest
+  pullPolicy: IfNotPresent
+
+web:
+  repository: ghcr.io/example/service-inventory-web
+  tag: latest
+  pullPolicy: IfNotPresent
+
+env:
+  DATABASE_URL: postgresql://postgres:postgres@postgres:5432/inventory
+  REDIS_URL: redis://redis:6379
+  HMAC_SECRET: change-me
+
+resources: {}
