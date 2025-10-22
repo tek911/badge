@@ -1,0 +1,35 @@
+{
+  "name": "@workers/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --dts",
+    "dev": "tsup src/index.ts --watch",
+    "lint": "eslint 'src/**/*.ts'",
+    "test": "jest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@connectors/core": "workspace:*",
+    "@connectors/scm-github": "workspace:*",
+    "@connectors/scm-gitlab": "workspace:*",
+    "@connectors/cloud-aws": "workspace:*",
+    "@connectors/cloud-azure": "workspace:*",
+    "@connectors/cloud-gcp": "workspace:*",
+    "@connectors/kube": "workspace:*",
+    "@connectors/cnapp-wiz": "workspace:*",
+    "@domain/core": "workspace:*",
+    "bullmq": "4.8.0",
+    "pino": "8.17.0"
+  },
+  "devDependencies": {
+    "tsup": "7.2.0",
+    "typescript": "5.3.3",
+    "jest": "29.7.0",
+    "ts-jest": "29.1.1",
+    "@types/jest": "29.5.11"
+  }
+}

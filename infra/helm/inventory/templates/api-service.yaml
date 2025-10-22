@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "service-inventory.fullname" . }}-api
+spec:
+  selector:
+    app: {{ include "service-inventory.fullname" . }}-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000

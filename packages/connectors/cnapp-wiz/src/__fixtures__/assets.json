@@ -1,0 +1,16 @@
+[
+  {
+    "id": "wiz-asset-1",
+    "name": "payments-api-prod",
+    "platform": "AWS",
+    "type": "EKS_DEPLOYMENT",
+    "tags": { "app": "payments", "owner": "team-payments" }
+  },
+  {
+    "id": "wiz-asset-2",
+    "name": "checkout-web",
+    "platform": "GCP",
+    "type": "GKE_DEPLOYMENT",
+    "tags": { "app": "checkout", "env": "prod" }
+  }
+]

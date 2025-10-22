@@ -1,0 +1,64 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Service Inventory API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/v1/applications": {
+      "get": {
+        "summary": "List business applications",
+        "responses": {
+          "200": {
+            "description": "List of applications"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create application",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/v1/applications/{id}": {
+      "get": {
+        "summary": "Get application",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Application" },
+          "404": { "description": "Not found" }
+        }
+      },
+      "patch": {
+        "summary": "Update application",
+        "responses": {
+          "200": { "description": "Updated" }
+        }
+      },
+      "delete": {
+        "summary": "Soft delete application",
+        "responses": {
+          "204": { "description": "Deleted" }
+        }
+      }
+    },
+    "/v1/ingest/ci-event": {
+      "post": {
+        "summary": "Record CI deployment event",
+        "responses": {
+          "202": { "description": "Accepted" }
+        }
+      }
+    }
+  }
+}

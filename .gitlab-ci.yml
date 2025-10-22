@@ -1,0 +1,27 @@
+stages:
+  - test
+  - build
+
+cache:
+  key: pnpm-${CI_COMMIT_REF_SLUG}
+  paths:
+    - .pnpm-store
+
+install:
+  stage: test
+  image: node:20-alpine
+  script:
+    - corepack enable pnpm
+    - pnpm install --frozen-lockfile
+    - pnpm --filter api test
+    - pnpm --filter web test
+
+build-images:
+  stage: build
+  image: docker:24-git
+  services:
+    - docker:24-dind
+  script:
+    - docker build -f apps/api/Dockerfile -t registry.example.com/inventory/api:$CI_COMMIT_SHORT_SHA .
+    - docker build -f apps/web/Dockerfile -t registry.example.com/inventory/web:$CI_COMMIT_SHORT_SHA .
+    - echo "Push commands omitted for brevity"
