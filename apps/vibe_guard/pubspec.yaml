@@ -1,0 +1,32 @@
+name: vibe_guard
+description: Flutter app that toggles system vibration based on BLE, location, and schedule triggers.
+version: 0.1.0
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_blue_plus: ^1.15.9
+  flutter_background_service: ^5.0.5
+  flutter_riverpod: ^2.4.9
+  geocoding: ^3.0.0
+  geolocator: ^10.1.0
+  google_maps_flutter: ^2.5.0
+  intl: ^0.19.0
+  permission_handler: ^11.3.0
+  shared_preferences: ^2.2.2
+  sound_mode: ^2.0.3
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
